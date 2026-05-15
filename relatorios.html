@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - Supervisório Estufa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ifdark: '#1a1a1a', // Definição exata da cor do seu header
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white min-h-screen text-slate-800">
+
+    <section class="p-4 flex flex-col space-y-4 max-w-7xl mx-auto h-screen">
+        
+        <header class="relative overflow-hidden rounded-2xl bg-ifdark shadow-lg shrink-0 border border-gray-800">
+    <div class="px-6 py-3 flex flex-col lg:flex-row items-center justify-between gap-4">
+        
+        <div class="flex items-center gap-4">
+            <div class="bg-transparent p-2 rounded-xl">
+                <img src="ChatGPT Image 8 de mai. de 2026, 15_40_07.png" 
+                     alt="Logo IFPB" 
+                     class="h-12 w-auto drop-shadow-md" />
+            </div>
+            <div>
+                <h1 class="text-lg font-black text-white leading-tight">Supervisório Web</h1>
+                <p class="text-green-300 text-[10px] font-bold uppercase tracking-widest">Equipe 7 • Estufa</p>
+            </div>
+        </div>
+
+        <nav class="flex gap-6 border-l border-r border-gray-700 px-8 py-2">
+            <a href="index.html" class="text-gray-400 hover:text-green-400 text-[11px] font-bold uppercase tracking-wider transition-colors flex items-center gap-2">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a href="relatorios.html" class="text-gray-400 hover:text-green-400 text-[11px] font-bold uppercase tracking-wider transition-colors flex items-center gap-2">
+                <i class="bi bi-file-earmark-bar-graph"></i> Relatórios
+            </a>
+        </nav>
+        
+        <div class="flex flex-col items-end gap-1 border-r border-gray-700 pr-6">
+            <div class="flex items-center gap-2 text-white text-[11px] font-bold">
+                <i class="bi bi-clock text-green-400"></i>
+                <span id="relogio-digital">00:00:00</span>
+            </div>
+            <div class="flex items-center gap-2 text-gray-400 text-[9px] uppercase tracking-tighter">
+                <i class="bi bi-geo-alt-fill text-red-500"></i>
+                <span>Cajazeiras, PB</span>
+                <span class="mx-1">•</span>
+                <span id="data-atual">--/--/----</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-6">
+            <div class="text-right">
+                <p class="text-white text-[11px] font-semibold uppercase flex items-center gap-1 justify-end">
+                    <i class="bi bi-person-circle text-green-400"></i>
+                    Operador: <span id="nome-usuario" class="text-green-400">---</span>
+                </p>
+                <button onclick="fazerLogout()" 
+                        class="text-red-400 hover:text-red-300 text-[10px] font-bold uppercase flex items-center gap-1 mt-1">
+                    <i class="bi bi-box-arrow-right"></i> Sair
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
+
+        <main class="flex-grow flex flex-col space-y-4 overflow-hidden">
+            
+            <div class="flex justify-between items-end">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900 tracking-tight">Relatórios de Operação</h2>
+                    <p class="text-slate-500 text-xs font-medium">Dados registrados a cada 1 minuto no banco Neon</p>
+                </div>
+                <button onclick="carregarDados()" class="bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold uppercase tracking-widest py-2.5 px-5 rounded-xl transition-all shadow-sm flex items-center gap-2">
+                    <i class="bi bi-arrow-clockwise"></i> Atualizar
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex-grow flex flex-col">
+                <div class="overflow-y-auto">
+                    <table class="min-w-full text-left border-separate border-spacing-0">
+                        <thead class="sticky top-0 bg-slate-50 border-b border-slate-200 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                            <tr>
+                                <th class="px-6 py-4 border-b border-slate-200">Data / Hora</th>
+                                <th class="px-6 py-4 border-b border-slate-200 text-center">Temperatura</th>
+                                <th class="px-6 py-4 border-b border-slate-200 text-center">Setpoint</th>
+                                <th class="px-6 py-4 border-b border-slate-200 text-center">Kp</th>
+                                <th class="px-6 py-4 border-b border-slate-200 text-center">Ki</th>
+                                <th class="px-6 py-4 border-b border-slate-200 text-center">Kd</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-corpo" class="text-sm divide-y divide-slate-100">
+                            <tr>
+                                <td colspan="6" class="px-6 py-20 text-center">
+                                    <div class="flex flex-col items-center gap-2 text-slate-400">
+                                        <i class="bi bi-database-fill-down text-3xl animate-bounce"></i>
+                                        <p class="font-medium">Sincronizando com Neon...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <script src="relatorios.js"></script>
+</body>
+</html>

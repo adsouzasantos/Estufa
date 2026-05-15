@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Supervisório Industrial • Equipe 7</title>
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Bibliotecas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="usuarios.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ifgreen: '#0F7B3B',
+                        ifdark: '#0B1320',
+                        iflight: '#F3F4F6',
+                        ifcard: '#FFFFFF',
+                    },
+                    fontFamily: { ui: ['"Segoe UI"', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @keyframes lamp-glow {
+            0% { transform: scale(1); filter: drop-shadow(0 0 2px #fbbf24); }
+            50% { transform: scale(1.1); filter: drop-shadow(0 0 15px #fbbf24); }
+            100% { transform: scale(1); filter: drop-shadow(0 0 2px #fbbf24); }
+        }
+        @keyframes fan-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        .active-lamp { animation: lamp-glow 1.5s infinite ease-in-out; color: #fbbf24 !important; }
+        .active-cooler { animation: fan-spin 0.6s infinite linear; color: #3b82f6 !important; }
+        
+        .card-active-hot { background-color: #fffbeb !important; border-color: #fef3c7 !important; }
+        .card-active-cold { background-color: #eff6ff !important; border-color: #dbeafe !important; }
+        
+        canvas { width: 100% !important; height: 100% !important; }
+        .hidden-section { display: none !important; }
+    </style>
+</head>
+<body class="bg-iflight font-ui text-ifdark min-h-screen">
+
+    <!-- ==========================================
+         SEÇÃO 1: TELA DE LOGIN
+         ========================================== -->
+    <section id="section-login" class="h-screen flex items-center justify-center bg-ifdark hidden-section">
+        <div class="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 mx-4">
+            <div class="text-center mb-8">
+                <i class="bi bi-shield-lock text-5xl text-ifgreen mb-4"></i>
+                <h2 class="text-3xl font-black text-gray-900">Sign In</h2>
+                <p class="text-gray-500 text-sm mt-2">Acesse o Supervisório Industrial</p>
+            </div>
+            
+            <div id="login-erro" class="hidden mb-4 p-3 bg-red-100 text-red-700 text-sm rounded-lg border border-red-200 text-center">
+                Usuário ou senha incorretos.
+            </div>
+
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Usuário</label>
+                    <div class="relative">
+                        <i class="bi bi-person absolute left-3 top-3 text-gray-400"></i>
+                        <input id="user" type="text" required 
+                               class="w-full pl-10 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-ifgreen outline-none" 
+                               placeholder="Nome de usuário">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                    <div class="relative">
+                        <i class="bi bi-lock absolute left-3 top-3 text-gray-400"></i>
+                        <input id="pass" type="password" required 
+                               class="w-full pl-10 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-ifgreen outline-none" 
+                               placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-ifgreen hover:bg-green-700 text-white font-bold py-3 rounded-lg transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    Entrar no Sistema
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- ==========================================
+         SEÇÃO 2: DASHBOARD
+         ========================================== -->
+    <section id="section-dashboard" class="p-4 flex flex-col space-y-4 max-w-7xl mx-auto h-screen hidden-section">
+       <header class="relative overflow-hidden rounded-2xl bg-ifdark shadow-lg shrink-0 border border-gray-800">
+    <div class="px-6 py-3 flex flex-col lg:flex-row items-center justify-between gap-4">
+        
+        <div class="flex items-center gap-4">
+            <div class="bg-transparent p-2 rounded-xl">
+                <img src="ChatGPT Image 8 de mai. de 2026, 15_40_07.png" 
+                     alt="Logo IFPB" 
+                     class="h-12 w-auto drop-shadow-md" />
+            </div>
+            <div>
+                <h1 class="text-lg font-black text-white leading-tight">Supervisório Web</h1>
+                <p class="text-green-300 text-[10px] font-bold uppercase tracking-widest">Equipe 7 • Estufa</p>
+            </div>
+        </div>
+
+        <nav class="flex gap-6 border-l border-r border-gray-700 px-8 py-2">
+            <a href="index.html" class="text-gray-400 hover:text-green-400 text-[11px] font-bold uppercase tracking-wider transition-colors flex items-center gap-2">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a href="relatorios.html" class="text-gray-400 hover:text-green-400 text-[11px] font-bold uppercase tracking-wider transition-colors flex items-center gap-2">
+                <i class="bi bi-file-earmark-bar-graph"></i> Relatórios
+            </a>
+        </nav>
+        
+        <div class="flex flex-col items-end gap-1 border-r border-gray-700 pr-6">
+            <div class="flex items-center gap-2 text-white text-[11px] font-bold">
+                <i class="bi bi-clock text-green-400"></i>
+                <span id="relogio-digital">00:00:00</span>
+            </div>
+            <div class="flex items-center gap-2 text-gray-400 text-[9px] uppercase tracking-tighter">
+                <i class="bi bi-geo-alt-fill text-red-500"></i>
+                <span>Cajazeiras, PB</span>
+                <span class="mx-1">•</span>
+                <span id="data-atual">--/--/----</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-6">
+            <div class="text-right">
+                <p class="text-white text-[11px] font-semibold uppercase flex items-center gap-1 justify-end">
+                    <i class="bi bi-person-circle text-green-400"></i>
+                    Operador: <span id="nome-usuario" class="text-green-400">---</span>
+                </p>
+                <button onclick="fazerLogout()" 
+                        class="text-red-400 hover:text-red-300 text-[10px] font-bold uppercase flex items-center gap-1 mt-1">
+                    <i class="bi bi-box-arrow-right"></i> Sair
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 overflow-hidden">
+            <!-- Vídeo -->
+            <div class="lg:col-span-5 bg-ifcard rounded-2xl shadow-md p-4 flex flex-col">
+                <h3 class="text-xs font-black uppercase text-ifgreen mb-2 flex items-center gap-2">
+                    <i class="bi bi-camera-video"></i>
+                    Monitoramento Visual
+                </h3>
+                <div id="video-container" class="flex-1 bg-black rounded-xl overflow-hidden flex items-center justify-center">
+                    <!-- Iframe via JS -->
+                </div>
+            </div>
+
+            <!-- Dados -->
+            <div class="lg:col-span-7 flex flex-col gap-4 overflow-y-auto pr-1">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-ifcard rounded-2xl p-4 shadow-sm border">
+                        <p class="text-[10px] font-bold text-ifgreen uppercase flex items-center gap-2">
+                            <i class="bi bi-thermometer-half"></i>
+                            Temp. Atual
+                        </p>
+                        <p class="text-4xl font-black"><span id="temp-display">00.0</span><small class="text-gray-400 text-lg ml-1">°C</small></p>
+                    </div>
+                    <div class="bg-ifgreen rounded-2xl p-4 shadow-sm text-white">
+                        <p class="text-[10px] font-bold uppercase flex items-center gap-2">
+                            <i class="bi bi-target"></i>
+                            Setpoint PID
+                        </p>
+                        <div class="flex gap-2 mt-1">
+                            <input type="number" id="setpoint-slider" value="25" min="0" max="100" step="0.5"
+                                   class="w-full bg-white/20 rounded px-2 py-1 text-xl font-bold outline-none" />
+                            <button onclick="enviarSetpoint()" 
+                                    class="bg-white text-ifgreen text-[10px] font-black px-4 rounded uppercase hover:bg-gray-100 transition">
+                                Definir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NOVO: Configuração de Sintonia PID (Kp, Ki, Kd) -->
+                <div class="bg-ifcard rounded-2xl p-4 shadow-sm border">
+                    <p class="text-[10px] font-bold text-ifgreen uppercase flex items-center gap-2 mb-3">
+                        <i class="bi bi-sliders"></i>
+                        Sintonia do Controlador (Kp, Ki, Kd)
+                    </p>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[9px] font-black text-gray-400 uppercase">Kp</label>
+                            <input type="number" id="kp-input" value="1.0" step="0.1"
+                                   class="w-full border-b-2 border-gray-100 focus:border-ifgreen outline-none py-1 text-lg font-bold" />
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-black text-gray-400 uppercase">Ki</label>
+                            <input type="number" id="ki-input" value="0.5" step="0.01"
+                                   class="w-full border-b-2 border-gray-100 focus:border-ifgreen outline-none py-1 text-lg font-bold" />
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-black text-gray-400 uppercase">Kd</label>
+                            <input type="number" id="kd-input" value="0.1" step="0.01"
+                                   class="w-full border-b-2 border-gray-100 focus:border-ifgreen outline-none py-1 text-lg font-bold" />
+                        </div>
+                    </div>
+                    <button onclick="enviarSintoniaPID()" 
+                            class="w-full mt-4 bg-ifdark hover:bg-gray-800 text-white text-[10px] font-black py-2 rounded uppercase transition shadow-md">
+                        Atualizar Parâmetros
+                    </button>
+                </div>
+
+                <!-- Atuadores -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div id="card-lampada" class="bg-white border p-4 rounded-2xl flex justify-between items-center transition-all">
+                        <span class="font-black text-xs">LÂMPADA</span>
+                        <div id="icon-lampada" class="text-4xl grayscale">💡</div>
+                    </div>
+                    <div id="card-cooler" class="bg-white border p-4 rounded-2xl flex justify-between items-center transition-all">
+                        <span class="font-black text-xs">COOLER</span>
+                        <div id="icon-cooler" class="text-4xl grayscale">❄️</div>
+                    </div>
+                </div>
+
+                <div class="bg-ifcard rounded-2xl p-4 border shadow-sm flex-1 min-h-[250px]">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>
